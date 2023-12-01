@@ -2,22 +2,11 @@
 
 
 
-| :exclamation: When using OpenOOD in your research, it is vital to cite both the OpenOOD benchmark (versions 1 and 1.5) and the individual works that have contributed to your research. Accurate citation acknowledges the efforts and contributions of all researchers involved. For example, if your work involves the NINCO benchmark within OpenOOD, please include a citation for NINCO apart of OpenOOD.|
-|-----------------------------------------|
-
-
 [![paper](https://img.shields.io/badge/Paper-OpenReview%20(v1.0)-b31b1b?style=for-the-badge)](https://openreview.net/pdf?id=gT6j4_tskUt)
 &nbsp;&nbsp;&nbsp;
-[![paper](https://img.shields.io/badge/PAPER-arXiv%20(v1.5)-yellowgreen?style=for-the-badge)](https://arxiv.org/abs/2306.09301)
-&nbsp;&nbsp;&nbsp;
-
-
-
 [![paper](https://img.shields.io/badge/leaderboard-35%2B%20Methods-228c22?style=for-the-badge)](https://zjysteven.github.io/OpenOOD/)
 &nbsp;&nbsp;&nbsp;
 [![paper](https://img.shields.io/badge/colab-tutorial-orange?style=for-the-badge)](https://colab.research.google.com/drive/1tvTpCM1_ju82Yygu40fy7Lc0L1YrlkQF?usp=sharing)
-&nbsp;&nbsp;&nbsp;
-[![paper](https://img.shields.io/badge/Forum-SLACK-797ef6?style=for-the-badge)](https://openood.slack.com/)
 
 
 <img src="https://live.staticflickr.com/65535/52145428300_78fd595193_k.jpg" width="800">
@@ -32,20 +21,6 @@ Comments, issues, contributions, and collaborations are all welcomed!
 |:--:|
 | <b>Timeline of the methods that OpenOOD supports. More methods are included as OpenOOD iterates.</b>|
 
-
-## Updates
-- **27 Oct, 2023**: A short version of OpenOOD `v1.5` is accepted to [NeurIPS 2023 Workshop on Distribution Shifts](https://sites.google.com/view/distshift2023/home?authuser=0) as an oral presentation. You may want to check out our [presentation slides](https://drive.google.com/file/d/1qlLQxWpYqFMwjgAHayV_ly2MSGbQ8b18/view?usp=drive_link) and [video recording](https://youtu.be/l58qYmY9NVw).
-- **25 Sept, 2023**: OpenOOD now supports OOD detection with foundation models including zero-shot CLIP and DINOv2 linear probe. Check out the example evaluation script [here](https://github.com/Jingkang50/OpenOOD/blob/main/scripts/eval_ood_imagenet_foundation_models.py).
-- **16 June, 2023**: :boom::boom: We are releasing OpenOOD `v1.5`, which includes the following exciting updates. A detailed changelog is provided in the [Wiki](https://github.com/Jingkang50/OpenOOD/wiki/OpenOOD-v1.5-change-log). An overview of the supported methods and benchmarks (with paper links) is available [here](https://github.com/Jingkang50/OpenOOD/wiki/OpenOOD-v1.5-methods-&-benchmarks-overview).
-    - A new [report](https://arxiv.org/abs/2306.09301) which provides benchmarking results on ImageNet and for full-spectrum detection.
-    - A unified, easy-to-use evaluator that allows evaluation by simply creating an evaluator instance and calling its functions. Check out this [colab tutorial](https://colab.research.google.com/drive/1tvTpCM1_ju82Yygu40fy7Lc0L1YrlkQF?usp=sharing)!
-    -  A live [leaderboard](https://zjysteven.github.io/OpenOOD/) that tracks the state-of-the-art of this field.
-- **14 October, 2022**: OpenOOD `v1.0` is accepted to NeurIPS 2022. Check the report [here](https://arxiv.org/abs/2210.07242).
-- **14 June, 2022**: We release `v0.5`.
-- **12 April, 2022**: Primary release to support [Full-Spectrum OOD Detection](https://arxiv.org/abs/2204.05306).
-
-## FAQ
-- `APS_mode` means Automatic (hyper)Parameter Searching mode, which enables the model to validate all the hyperparameters in the sweep list based on the validation ID/OOD set. The default value is False. Check [here](https://github.com/Jingkang50/OpenOOD/blob/main/configs/postprocessors/dice.yml) for example.
 
 
 ## Get Started
