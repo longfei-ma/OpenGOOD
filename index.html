@@ -16,7 +16,7 @@
   
   <!--  <meta name="viewport" content="width=device-width, initial-scale=1" />-->
   <meta name="viewport" content="width=1024">
-  <title>OpenOOD: Out-of-Distribution benchmark</title>
+  <title>OpenGOOD: Graph Out-of-Distribution benchmark</title>
   <script src="./benchmark_files/jquery.min.js.下载"></script>
   <script src="./benchmark_files/bootstrap.min.js.下载"></script>
   <link rel="stylesheet" href="./benchmark_files/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -143,7 +143,7 @@
 <body><div id="MathJax_Message" style="display: none;"></div>
   <nav class="navbar navbar-expand-md">
       <div class="container">
-        <a class="navbar-brand" href="https://zjysteven.github.io/OpenOOD/index.html">OpenOOD</a>
+        <a class="navbar-brand" href="https://zjysteven.github.io/OpenOOD/index.html">OpenGOOD</a>
         <button class="navbar-toggler navbar-light" type="button" data-toggle="collapse" data-target="#main-navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -174,13 +174,13 @@
   <header>
     <div class="header-block container">
       <!--div class="logo"><img src="./images/logo.png" alt="logo" /></div-->
-      <!--div class="title">OpenOOD</div-->
+      <!--div class="title">OpenGOOD</div-->
       <!--p style="text-align:center;"><img src="https://live.staticflickr.com/65535/52145428300_78fd595193_k.jpg" width="600"></p-->
       <div class="top_image">
         <img src="./benchmark_files/openood_logo.jpeg">
       </div>
       <div class="description">
-        A standardized benchmark for Out-of-Distribution Detection
+        A standardized benchmark for Graph Out-of-Distribution Detection
       </div>
     </div>
   </header>
@@ -190,15 +190,15 @@
     <section id="introduction">
       <div class="overview">
         <p class="doublealign">
-            OpenOOD aims to provide accurate, standardized, and unified evaluation of OOD detection.
+            OpenGOOD aims to provide accurate, standardized, and unified evaluation of OOD detection.
             There are at least 100+ works on OOD detection in the past 6 years, but it is still unclear which approaches really work since the evaluation setup is highly inconsistent from paper to paper.
-            OpenOOD currently provides 6 benchmarks for OOD detection (4 for standard setting and 2 for full-spectrum setting) in the context of image classification and benchmarks 40 advanced methodologies within our framework.
-            We expect OpenOOD to foster collective efforts in the community towards advancing the state-of-the-art in OOD detection. 
+            OpenGOOD currently provides 6 benchmarks for OOD detection (4 for standard setting and 2 for full-spectrum setting) in the context of image classification and benchmarks 40 advanced methodologies within our framework.
+            We expect OpenGOOD to foster collective efforts in the community towards advancing the state-of-the-art in OOD detection. 
           <br><br>
           <strong> News:</strong>
           </p><ul>
              <li>  <strong>June 2023:</strong> 
-                This leaderboard is officially online, along with the v1.5 release of OpenOOD which
+                This leaderboard is officially online, along with the v1.5 release of OpenGOOD which
                 emphasizes large-scale and full-spectrum OOD detection. Check out our 
                 <a href="https://arxiv.org/abs/2306.09301">technical report</a> and detailed <a href="https://github.com/Jingkang50/OpenOOD/wiki/OpenOOD-v1.5-change-log">changelog</a>.
              </li>
@@ -2185,10 +2185,10 @@ metrics <span style="color: #333333">=</span> evaluator.eval_ood()
       </div>
 
       <p class="qa-box">
-        <span class="question">➤ What are the differences between OpenOOD v1.5 and v1.0? 🤔
+        <span class="question">➤ What are the differences between OpenGOOD v1.5 and v1.0? 🤔
         </span>
         <br>
-        <span class="answer"> OpenOOD v1.5 extends its earlier version by 1) including large-scale experiment results on ImageNet, 2) 
+        <span class="answer"> OpenGOOD v1.5 extends its earlier version by 1) including large-scale experiment results on ImageNet, 2) 
             studying full-spectrum detection, and 3) introducing new features such as this leaderboard and the new evaluator. As a result, the leaderboard uniquely accompanies
             our v1.5 release. Please also see a detailed changelog <a href="https://github.com/Jingkang50/OpenOOD/wiki/OpenOOD-v1.5-change-log">here</a>.
         </span>
@@ -2205,7 +2205,7 @@ metrics <span style="color: #333333">=</span> evaluator.eval_ood()
       Consider citing our papers if you reference our leaderboard or use our implementations in your research:
       <div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.0em .0em .0em .0em;padding:.2em .6em;">
         <pre style="margin: 0; line-height: 125%"><span style="color: #555555; font-weight: bold">@article</span>{zhang2023openood,
-    title<span style="color: #333333">=</span>{OpenOOD v1.5: Enhanced Benchmark for Out-of-Distribution Detection},
+    title<span style="color: #333333">=</span>{OpenGOOD v1.5: Enhanced Benchmark for Out-of-Distribution Detection},
     author<span style="color: #333333">=</span>{Zhang, Jingyang <span style="color: #000000; font-weight: bold">and</span> Yang, Jingkang <span style="color: #000000; font-weight: bold">and</span> Wang, Pengyun <span style="color: #000000; font-weight: bold">and</span> Wang, Haoqi <span style="color: #000000; font-weight: bold">and</span> Lin, Yueqian <span style="color: #000000; font-weight: bold">and</span> Zhang, Haoran <span style="color: #000000; font-weight: bold">and</span> Sun, Yiyou <span style="color: #000000; font-weight: bold">and</span> Du, Xuefeng <span style="color: #000000; font-weight: bold">and</span> Zhou, Kaiyang <span style="color: #000000; font-weight: bold">and</span> Zhang, Wayne <span style="color: #000000; font-weight: bold">and</span> Li, Yixuan <span style="color: #000000; font-weight: bold">and</span> Liu, Ziwei <span style="color: #000000; font-weight: bold">and</span> Chen, Yiran <span style="color: #000000; font-weight: bold">and</span> Hai, Li},
     journal<span style="color: #333333">=</span>{arXiv preprint arXiv:2306.09301},
     year<span style="color: #333333">=</span>{2023},
@@ -2227,7 +2227,7 @@ metrics <span style="color: #333333">=</span> evaluator.eval_ood()
     <section id="contribute">
       <div class="details">
         <div class="box2">
-          <p>Contribute to OpenOOD!</p>
+          <p>Contribute to OpenGOOD!</p>
           <div class="divider">
             <hr>
           </div>
@@ -2272,7 +2272,7 @@ metrics <span style="color: #333333">=</span> evaluator.eval_ood()
   <hr class="bottomrule">
 
   <footer>
-    <small>© 2023, OpenOOD;
+    <small>© 2023, OpenGOOD;
       <a href="https://icons8.com/icon/100413/access">Icons from Icons8</a></small>
   </footer>
 
