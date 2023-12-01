@@ -33,13 +33,15 @@ class BaseEvaluator:
             for batch in tqdm(data_loader,
                               desc='Eval: ',
                               position=0,
-                              leave=True):
+                              leave=True,
+                              disable=not comm.is_main_process()):
                 # prepare data
                 data = batch['data'].cuda()
                 target = batch['label'].cuda()
 
                 # forward
                 output = net(data)
+
                 loss = F.cross_entropy(output, target)
 
                 # accuracy
@@ -58,7 +60,10 @@ class BaseEvaluator:
         metrics['acc'] = self.save_metrics(acc)
         return metrics
 
-    def extract(self, net: nn.Module, data_loader: DataLoader):
+    def extract(self,
+                net: nn.Module,
+                data_loader: DataLoader,
+                filename: str = 'feature'):
         net.eval()
         feat_list, label_list = [], []
 
@@ -66,7 +71,8 @@ class BaseEvaluator:
             for batch in tqdm(data_loader,
                               desc='Feature Extracting: ',
                               position=0,
-                              leave=True):
+                              leave=True,
+                              disable=not comm.is_main_process()):
                 data = batch['data'].cuda()
                 label = batch['label']
 
@@ -79,7 +85,7 @@ class BaseEvaluator:
 
         save_dir = self.config.output_dir
         os.makedirs(save_dir, exist_ok=True)
-        np.savez(os.path.join(save_dir, 'feature'),
+        np.savez(os.path.join(save_dir, filename),
                  feat_list=feat_list,
                  label_list=label_list)
 

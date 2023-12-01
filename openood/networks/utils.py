@@ -1,26 +1,27 @@
-from types import MethodType
-
-import mmcv
+# import mmcv
+from copy import deepcopy
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
-from mmcls.apis import init_model
+# from mmcls.apis import init_model
 
 import openood.utils.comm as comm
 
 from .bit import KNOWN_MODELS
 from .conf_branch_net import ConfBranchNet
-from .csi_net import CSINet
+from .csi_net import get_csi_linear_layers, CSINet
+from .cider_net import CIDERNet
+from .t2fnorm_net import T2FNormNet
 from .de_resnet18_256x256 import AttnBasicBlock, BN_layer, De_ResNet18_256x256
 from .densenet import DenseNet3
 from .draem_net import DiscriminativeSubNetwork, ReconstructiveSubNetwork
 from .dropout_net import DropoutNet
 from .dsvdd_net import build_network
-from .gmoe import deit_small_patch16_224
 from .godin_net import GodinNet
 from .lenet import LeNet
 from .mcd_net import MCDNet
+from .npos_net import NPOSNet
 from .openmax_net import OpenMax
 from .patchcore_net import PatchcoreNet
 from .projection_net import ProjectionNet
@@ -30,15 +31,27 @@ from .resnet18_64x64 import ResNet18_64x64
 from .resnet18_224x224 import ResNet18_224x224
 from .resnet18_256x256 import ResNet18_256x256
 from .resnet50 import ResNet50
+from .rot_net import RotNet
 from .udg_net import UDGNet
+from .vit_b_16 import ViT_B_16
 from .wrn import WideResNet
+from .rts_net import RTSNet
 
 
 def get_network(network_config):
 
     num_classes = network_config.num_classes
 
-    if network_config.name == 'resnet18_32x32':
+    if hasattr(network_config, 'modification') and network_config.modification == 't2fnorm':
+        network_config.modification = 'none'
+        backbone = get_network(network_config)
+        backbone.fc = nn.Identity()
+
+        net = T2FNormNet(backbone=backbone,
+                         tau=network_config.tau,
+                         num_classes=num_classes)
+
+    elif network_config.name == 'resnet18_32x32':
         net = ResNet18_32x32(num_classes=num_classes)
 
     elif network_config.name == 'resnet18_256x256':
@@ -84,23 +97,84 @@ def get_network(network_config):
         net = PatchcoreNet(module)
 
     elif network_config.name == 'godin_net':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
         backbone = get_network(network_config.backbone)
+        feature_size = backbone.feature_size
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
         net = GodinNet(backbone=backbone,
-                       feature_size=backbone.feature_size,
+                       feature_size=feature_size,
                        num_classes=num_classes,
                        similarity_measure=network_config.similarity_measure)
+
+    elif network_config.name == 'cider_net':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
+        backbone = get_network(network_config.backbone)
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
+        net = CIDERNet(backbone=backbone,
+                       head=network_config.head,
+                       feat_dim=network_config.feat_dim,
+                       num_classes=num_classes)
+
+    elif network_config.name == 'npos_net':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
+        backbone = get_network(network_config.backbone)
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
+        net = NPOSNet(backbone=backbone,
+                      head=network_config.head,
+                      feat_dim=network_config.feat_dim,
+                      num_classes=num_classes)
+
+    elif network_config.name == 'rts_net':
+        backbone = get_network(network_config.backbone)
+        try:
+            feature_size = backbone.feature_size
+        except AttributeError:
+            feature_size = backbone.module.feature_size
+        net = RTSNet(backbone=backbone,
+                     feature_size=feature_size,
+                     num_classes=num_classes,
+                     dof=network_config.dof)
 
     elif network_config.name == 'react_net':
         backbone = get_network(network_config.backbone)
         net = ReactNet(backbone)
 
     elif network_config.name == 'csi_net':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
         backbone = get_network(network_config.backbone)
-        net = CSINet(backbone,
-                     feature_size=backbone.feature_size,
-                     num_classes=num_classes,
-                     simclr_dim=network_config.simclr_dim,
-                     shift_trans_type=network_config.shift_trans_type)
+        feature_size = backbone.feature_size
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
+        net = get_csi_linear_layers(feature_size, num_classes,
+                                    network_config.simclr_dim,
+                                    network_config.shift_trans_type)
+        net['backbone'] = backbone
+
+        dummy_net = CSINet(deepcopy(backbone),
+                           feature_size=feature_size,
+                           num_classes=num_classes,
+                           simclr_dim=network_config.simclr_dim,
+                           shift_trans_type=network_config.shift_trans_type)
+        net['dummy_net'] = dummy_net
 
     elif network_config.name == 'draem':
         model = ReconstructiveSubNetwork(in_channels=3,
@@ -119,11 +193,27 @@ def get_network(network_config):
         net = OpenMax(backbone=backbone, num_classes=num_classes)
 
     elif network_config.name == 'mcd':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
         backbone = get_network(network_config.backbone)
+        feature_size = backbone.feature_size
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
         net = MCDNet(backbone=backbone, num_classes=num_classes)
 
     elif network_config.name == 'udg':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
         backbone = get_network(network_config.backbone)
+        feature_size = backbone.feature_size
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
         net = UDGNet(backbone=backbone,
                      num_classes=num_classes,
                      num_clusters=network_config.num_clusters)
@@ -175,13 +265,24 @@ def get_network(network_config):
 
     elif network_config.name == 'arpl_net':
         from .arpl_net import ARPLayer
+        # don't wrap ddp here because we need to modify
+        # feature_net
+        network_config.feat_extract_network.num_gpus = 1
         feature_net = get_network(network_config.feat_extract_network)
         try:
-            dim_centers = feature_net.fc.weight.shape[1]
-            feature_net.fc = nn.Identity()
+            if isinstance(feature_net, nn.parallel.DistributedDataParallel):
+                dim_centers = feature_net.module.fc.weight.shape[1]
+                feature_net.module.fc = nn.Identity()
+            else:
+                dim_centers = feature_net.fc.weight.shape[1]
+                feature_net.fc = nn.Identity()
         except Exception:
-            dim_centers = feature_net.classifier[0].weight.shape[1]
-            feature_net.classifier = nn.Identity()
+            if isinstance(feature_net, nn.parallel.DistributedDataParallel):
+                dim_centers = feature_net.module.classifier[0].weight.shape[1]
+                feature_net.module.classifier = nn.Identity()
+            else:
+                dim_centers = feature_net.classifier[0].weight.shape[1]
+                feature_net.classifier = nn.Identity()
 
         criterion = ARPLayer(feat_dim=dim_centers,
                              num_classes=num_classes,
@@ -196,17 +297,32 @@ def get_network(network_config):
             zero_head=True,
             num_block_open=network_config.num_block_open)
 
-    elif network_config.name == 'vit':
-        cfg = mmcv.Config.fromfile(network_config.model)
-        net = init_model(cfg, network_config.checkpoint, 0)
-        net.get_fc = MethodType(
-            lambda self: (self.head.layers.head.weight.cpu().numpy(),
-                          self.head.layers.head.bias.cpu().numpy()), net)
+    elif network_config.name == 'vit-b-16':
+        net = ViT_B_16(num_classes=num_classes)
 
     elif network_config.name == 'conf_branch_net':
-
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
         backbone = get_network(network_config.backbone)
+        feature_size = backbone.feature_size
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
         net = ConfBranchNet(backbone=backbone, num_classes=num_classes)
+
+    elif network_config.name == 'rot_net':
+        # don't wrap ddp here cuz we need to modify
+        # backbone
+        network_config.backbone.num_gpus = 1
+        backbone = get_network(network_config.backbone)
+        feature_size = backbone.feature_size
+        # remove fc otherwise ddp will
+        # report unused params
+        backbone.fc = nn.Identity()
+
+        net = RotNet(backbone=backbone, num_classes=num_classes)
 
     elif network_config.name == 'dsvdd':
         net = build_network(network_config.type)
@@ -219,43 +335,43 @@ def get_network(network_config):
         backbone = get_network(network_config.backbone)
         net = DropoutNet(backbone=backbone, dropout_p=network_config.dropout_p)
 
+    elif network_config.name == 'simclr_net':
+        # backbone = get_network(network_config.backbone)
+        # net = SimClrNet(backbone, out_dim=128)
+        from .temp import SSLResNet
+        net = SSLResNet()
+        net.encoder = nn.DataParallel(net.encoder).cuda()
+
     elif network_config.name == 'rd4ad_net':
         encoder = get_network(network_config.backbone)
         bn = BN_layer(AttnBasicBlock, 2)
         decoder = De_ResNet18_256x256()
         net = {'encoder': encoder, 'bn': bn, 'decoder': decoder}
-
-    elif network_config.name == 'gmoe':
-        net = deit_small_patch16_224(
-            pretrained=network_config.use_pretrained_model,
-            num_classes=num_classes,
-            moe_layers=['F'] * 8 + ['S', 'F'] * 2,
-            mlp_ratio=4.,
-            num_experts=6,
-            drop_path_rate=0.1,
-            router='cosine_top')
-
-    elif network_config.name == 'vit_s':
-        net = deit_small_patch16_224(
-            pretrained=network_config.use_pretrained_model,
-            num_classes=num_classes,
-            moe_layers=None,
-            mlp_ratio=4.,
-            num_experts=6,
-            drop_path_rate=0.1,
-            router='cosine_top')
-
     else:
         raise Exception('Unexpected Network Architecture!')
 
     if network_config.pretrained:
         if type(net) is dict:
-            for subnet, checkpoint in zip(net.values(),
-                                          network_config.checkpoint):
-                if checkpoint is not None:
-                    if checkpoint != 'none':
-                        subnet.load_state_dict(torch.load(checkpoint),
-                                               strict=True)
+            if isinstance(network_config.checkpoint, list):
+                for subnet, checkpoint in zip(net.values(),
+                                              network_config.checkpoint):
+                    if checkpoint is not None:
+                        if checkpoint != 'none':
+                            subnet.load_state_dict(torch.load(checkpoint),
+                                                   strict=False)
+            elif isinstance(network_config.checkpoint, str):
+                ckpt = torch.load(network_config.checkpoint)
+                subnet_ckpts = {k: {} for k in net.keys()}
+                for k, v in ckpt.items():
+                    for subnet_name in net.keys():
+                        if k.startwith(subnet_name):
+                            subnet_ckpts[subnet_name][k.replace(
+                                subnet_name + '.', '')] = v
+                            break
+
+                for subnet_name, subnet in net.items():
+                    subnet.load_state_dict(subnet_ckpts[subnet_name])
+
         elif network_config.name == 'bit' and not network_config.normal_load:
             net.load_from(np.load(network_config.checkpoint))
         elif network_config.name == 'vit':
@@ -263,19 +379,20 @@ def get_network(network_config):
         else:
             try:
                 net.load_state_dict(torch.load(network_config.checkpoint),
-                                    strict=True)
+                                    strict=False)
             except RuntimeError:
                 # sometimes fc should not be loaded
                 loaded_pth = torch.load(network_config.checkpoint)
                 loaded_pth.pop('fc.weight')
                 loaded_pth.pop('fc.bias')
-                net.load_state_dict(loaded_pth, strict=True)
+                net.load_state_dict(loaded_pth, strict=False)
         print('Model Loading {} Completed!'.format(network_config.name))
+
     if network_config.num_gpus > 1:
         if type(net) is dict:
             for key, subnet in zip(net.keys(), net.values()):
                 net[key] = torch.nn.parallel.DistributedDataParallel(
-                    subnet,
+                    subnet.cuda(),
                     device_ids=[comm.get_local_rank()],
                     broadcast_buffers=True)
         else:
@@ -290,11 +407,6 @@ def get_network(network_config):
                 subnet.cuda()
         else:
             net.cuda()
-        torch.cuda.manual_seed(1)
-        np.random.seed(1)
+
     cudnn.benchmark = True
-
-    pytorch_total_params = sum(p.numel() for p in net.parameters())
-    print('Parameter num:', ' ', pytorch_total_params)
-
     return net

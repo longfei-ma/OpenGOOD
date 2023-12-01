@@ -9,22 +9,27 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from .base_postprocessor import BasePostprocessor
+from .info import num_classes_dict
 
 
 class GRAMPostprocessor(BasePostprocessor):
     def __init__(self, config):
         self.config = config
         self.postprocessor_args = config.postprocessor.postprocessor_args
-        self.num_classes = self.config.dataset.num_classes
+        self.num_classes = num_classes_dict[self.config.dataset.name]
         self.powers = self.postprocessor_args.powers
 
         self.feature_min, self.feature_max = None, None
         self.args_dict = self.config.postprocessor.postprocessor_sweep
+        self.setup_flag = False
 
     def setup(self, net: nn.Module, id_loader_dict, ood_loader_dict):
-
-        self.feature_min, self.feature_max = sample_estimator(
-            net, id_loader_dict['train'], self.num_classes, self.powers)
+        if not self.setup_flag:
+            self.feature_min, self.feature_max = sample_estimator(
+                net, id_loader_dict['train'], self.num_classes, self.powers)
+            self.setup_flag = True
+        else:
+            pass
 
     def postprocess(self, net: nn.Module, data: Any):
         preds, deviations = get_deviations(net, data, self.feature_min,
@@ -114,7 +119,7 @@ def get_deviations(model, data, mins, maxs, num_classes, powers):
     num_poles_list = powers
     exist = 1
     pred_list = []
-    dev = [0 for x in range(200)]
+    dev = [0 for x in range(data.shape[0])]
 
     # get predictions
     logits, feature_list = model(data, return_feature_list=True)

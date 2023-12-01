@@ -63,8 +63,11 @@ class InnerDeconf(nn.Module):
 
 
 class GodinNet(nn.Module):
-    def __init__(self, backbone, feature_size, num_classes,
-                 similarity_measure):
+    def __init__(self,
+                 backbone,
+                 feature_size,
+                 num_classes,
+                 similarity_measure='cosine'):
         super(GodinNet, self).__init__()
 
         h_dict = {
@@ -76,6 +79,10 @@ class GodinNet(nn.Module):
         self.num_classes = num_classes
 
         self.backbone = backbone
+        if hasattr(self.backbone, 'fc'):
+            # remove fc otherwise ddp will
+            # report unused params
+            self.backbone.fc = nn.Identity()
 
         self.h = h_dict[similarity_measure](feature_size, num_classes)
 
